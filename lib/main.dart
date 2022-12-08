@@ -31,33 +31,52 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var cnt = 0;
+  String? label = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Menu Bar")),
-      body: Center(
-          child: ListView.builder(
-        itemCount: widget.cards.length,
-        itemBuilder: (BuildContext context, int index) {
-          return widget.cards[index];
-        },
-      )),
+      appBar: AppBar(title: const Text("My Todo")),
+      body: Center(child: Text(label ?? "")),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            widget.cards.add(TodoCardWidget(label: "${cnt}"));
-            if (cnt == 10) {
-              cnt = 0;
-              widget.cards = [];
-            }
-            cnt += 1;
-          });
+        onPressed: () async {
+          var resultLabel = await _showTextInputDialog(context);
+          if (resultLabel != null) {
+            setState(() {
+              label = resultLabel;
+            });
+          }
         },
         child: const Icon(Icons.add),
       ),
     );
   }
+}
+
+final _textFieldController = TextEditingController();
+
+Future<String?> _showTextInputDialog(BuildContext context) async {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Todo"),
+        content: TextField(
+          controller: _textFieldController,
+          decoration:
+              const InputDecoration(hintText: "Please input your task name"),
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+              onPressed: (() => Navigator.pop(context)),
+              child: const Text("cancel")),
+          ElevatedButton(
+              onPressed: () =>
+                  Navigator.pop(context, _textFieldController.text),
+              child: const Text("OK"))
+        ],
+      );
+    },
+  );
 }
 
 class TodoCardWidget extends StatefulWidget {
