@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 ///////////////////////////////
 // ① Main：Flutterアプリもmain()からコードが実行されます。
@@ -31,19 +32,60 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String? label = "";
+  @override
+  void initState() {
+    //Widgetを初期化した時の処理をoverride
+    super.initState();
+    SharedPreferences.getInstance().then((pref) {
+      var todo = pref.getStringList("todo") ?? [];
+      for (var v in todo) {
+        setState(() {
+          widget.cards.add(TodoCardWidget(label: v));
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("My Todo")),
-      body: Center(child: Text(label ?? "")),
+      appBar: AppBar(
+        title: const Text("My Todo"),
+        actions: [
+          IconButton(
+              onPressed: () {
+                SharedPreferences.getInstance().then((pref) async {
+                  await pref.setStringList("todo", []);
+                  setState(() {
+                    widget.cards = [];
+                  });
+                });
+              },
+              icon: const Icon(Icons.delete))
+        ],
+      ),
+      body: Center(
+        child: ListView.builder(
+          itemCount: widget.cards.length,
+          itemBuilder: (BuildContext context, int index) {
+            return widget.cards[index];
+          },
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          var resultLabel = await _showTextInputDialog(context);
-          if (resultLabel != null) {
+          var label = await _showTextInputDialog(context);
+
+          if (label != null) {
             setState(() {
-              label = resultLabel;
+              widget.cards.add(TodoCardWidget(label: label));
             });
+
+            SharedPreferences pref = await SharedPreferences.getInstance();
+            var todo = pref.getStringList("todo") ?? [];
+            todo.add(label);
+            await pref.setStringList("todo", todo);
+            _textFieldController.text = "";
           }
         },
         child: const Icon(Icons.add),
@@ -67,7 +109,7 @@ Future<String?> _showTextInputDialog(BuildContext context) async {
         ),
         actions: <Widget>[
           ElevatedButton(
-              onPressed: (() => Navigator.pop(context)),
+              onPressed: () => Navigator.pop(context),
               child: const Text("cancel")),
           ElevatedButton(
               onPressed: () =>
@@ -99,9 +141,9 @@ class _TodoCardWidgetState extends State<TodoCardWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
       child: Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             Checkbox(onChanged: _changeState, value: widget.state),
