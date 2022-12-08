@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 ///////////////////////////////
-// ① Main：Flutterアプリもmain()からコードが実行されます。
-// `void main() => runApp(MyApp());` でも意味は同じです。
-void main() {
-  return runApp(MyApp());
-}
+
+void main() => runApp(MyApp());
 
 ///////////////////////////////
-// ② アプリの基盤：アプリのテーマやスタイルを設定する。その上のページを追加していく。
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
